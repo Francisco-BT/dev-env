@@ -1,0 +1,10 @@
+theme=light:DraculaAlucard,dark:DraculaPro
+shell-integration-features=no-cursor
+cursor-color=cell-foreground
+cursor-text=cell-background
+cursor-style=block
+cursor-style-blink=true
+fullscreen=true
+font-family="Berkeley Mono"
+font-size=15
+
