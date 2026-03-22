@@ -1,4 +1,4 @@
-theme=light:DraculaAlucard,dark:DraculaPro
+theme=light:DraculaBlade,dark:DraculaPro
 shell-integration-features=no-cursor
 cursor-color=cell-foreground
 cursor-text=cell-background

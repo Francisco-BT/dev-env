@@ -28,6 +28,9 @@ alias yfix='yarn lint --fix'
 ## All that sweet sweet fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
+bindkey -s ^f "tmux-sessionizer\n"
+
+
 addToPath() {
     if [[ "$PATH" != *"$1"* ]]; then
         export PATH=$PATH:$1
@@ -41,4 +44,5 @@ addToPathFront() {
 }
 
 addToPathFront $HOME/.local/scripts
+addToPathFront $HOME/.local/bin
 
