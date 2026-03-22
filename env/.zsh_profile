@@ -1,0 +1,44 @@
+export XDG_CONFIG_HOME=$HOME/.config
+
+# User configuration
+export NVM_LAZY_LOAD=true
+export NVM_COMPLETION=true
+export NVM_AUTO_USE=true
+# Extra config
+export NODE_OPTIONS="--max-old-space-size=8192"
+export CYPRESS_CRASH_REPORTS=0
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#6272a4"
+VIM="nvim"
+export GIT_EDITOR=$VIM
+
+# Personal aliases
+alias c="cursor"
+alias vim='nvim'
+alias v='vim'
+# Development aliases
+alias y='yarn'
+alias yi='yarn install'
+alias ys='yarn start'
+alias yt='yarn test'
+alias yb='yarn build'
+alias yd='yarn dev'
+alias ylint='yarn lint'
+alias yfix='yarn lint --fix'
+
+## All that sweet sweet fzf
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+addToPath() {
+    if [[ "$PATH" != *"$1"* ]]; then
+        export PATH=$PATH:$1
+    fi
+}
+
+addToPathFront() {
+    if [[ ! -z "$2" ]] || [[ "$PATH" != *"$1"* ]]; then
+        export PATH=$1:$PATH
+    fi
+}
+
+addToPathFront $HOME/.local/scripts
+

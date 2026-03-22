@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+git clone git@github.com:junegunn/fzf.git $HOME/personal/fzf
+$HOME/personal/fzf/install

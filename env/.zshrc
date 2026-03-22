@@ -10,7 +10,7 @@ export ZSH="$HOME/.oh-my-zsh"
 # load a random theme each time Oh My Zsh is loaded, in which case,
 # to know which specific one was loaded, run: echo $RANDOM_THEME
 # See https://github.com/ohmyzsh/ohmyzsh/wiki/Themes
-ZSH_THEME="nanotech"
+ZSH_THEME="robbyrussell"
 
 # Settings for faster startup
 DISABLE_UPDATE_PROMPT="true"
@@ -38,34 +38,13 @@ else
 fi
 
 source $ZSH/oh-my-zsh.sh
-
-# User configuration
-
-export NVM_LAZY_LOAD=true
-export NVM_COMPLETION=true
-export NVM_AUTO_USE=true
-# Extra config
-export NODE_OPTIONS="--max-old-space-size=8192"
-export CYPRESS_CRASH_REPORTS=0
+source ~/.zsh_profile
 
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
 
-# Personal aliases
-alias c="cursor"
-alias vim='nvim'
-alias v='vim'
-# Development aliases
-alias y='yarn'
-alias yi='yarn install'
-alias ys='yarn start'
-alias yt='yarn test'
-alias yb='yarn build'
-alias yd='yarn dev'
-alias ylint='yarn lint'
-alias yfix='yarn lint --fix'
 
 
 # Utility functions
@@ -100,5 +79,3 @@ fi
 eval "$(starship init zsh)"
 eval "$(fnm env --use-on-cd --shell zsh)"
 export PATH="$HOME/.local/bin:$PATH"
-export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#6272a4"
-export XDG_CONFIG_HOME=$HOME/.config
