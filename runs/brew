@@ -2,5 +2,5 @@
 if ! command -v brew &> /dev/null; then
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 else
-    echo "Hombrew is already installed, skipping..."
+    echo "Homebrew is already installed, skipping..."
 fi
