@@ -1,12 +1,7 @@
 export XDG_CONFIG_HOME=$HOME/.config
 
-# User configuration
-export NVM_LAZY_LOAD=true
-export NVM_COMPLETION=true
-export NVM_AUTO_USE=true
 # Extra config
 export NODE_OPTIONS="--max-old-space-size=8192"
-export CYPRESS_CRASH_REPORTS=0
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=#6272a4"
 VIM="nvim"
 export GIT_EDITOR=$VIM
@@ -25,10 +20,13 @@ alias yd='yarn dev'
 alias ylint='yarn lint'
 alias yfix='yarn lint --fix'
 
+# Bindkeys
+bindkey -s ^f "tmux-sessionizer\n"
+bindkey '^N' autosuggest-accept
+
 ## All that sweet sweet fzf
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
-bindkey -s ^f "tmux-sessionizer\n"
 
 
 addToPath() {

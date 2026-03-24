@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
+search_paths=("$HOME/mine" "$HOME/work")
 
-selected=$(find ~/Projects/*/ -maxdepth 1 -mindepth 1 -type d | fzf)
+if command -v fd >/dev/null 2>&1; then
+    selected=$(fd . "${search_paths[@]}" --min-depth 1 --max-depth 1 --type d --exclude node_modules --exclude .git | fzf)
+else
+    selected=$(find "${search_paths[@]}" -mindepth 1 -maxdepth 1 -type d \( -name node_modules -o -name .git \) -prune -o -type d -print | fzf)
+fi
+
 if [[ -z "$selected" ]]; then
     exit 0
 fi

@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
-
-git clone git@github.com:junegunn/fzf.git $HOME/personal/fzf
-$HOME/personal/fzf/install
+if command -v fzf >/dev/null 2>&1;then
+    echo "✔ fzf is already istalled."
+else
+    echo "🚀 Installing fzf from Git..."
+    mkdir -p "$HOME/personal"
+    git clone --depth 1 https://github.com/junegunn/fzf.git "$HOME/personal/fzf"
+    "$HOME/personal/fzf/install" --all
+fi

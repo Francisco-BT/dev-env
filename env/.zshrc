@@ -29,23 +29,13 @@ setopt INC_APPEND_HISTORY
 
 plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
 
-# Faster completion system
-autoload -Uz compinit
-if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
-  compinit
-else
-  compinit -C
-fi
-
-source $ZSH/oh-my-zsh.sh
-source ~/.zsh_profile
-
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
-
-
+source $ZSH/oh-my-zsh.sh
+source ~/.zsh_profile
+export PATH="$HOME/.local/bin:$PATH"
 
 # Utility functions
 mkcd() { mkdir -p "$1" && cd "$1"; }
@@ -71,11 +61,22 @@ extract() {
 killport() { lsof -ti:$1 | xargs kill -9; }
 findproc() { ps aux | grep -i $1; }
 
-# Auto-start ssh-agent
-if [ -z "$SSH_AUTH_SOCK" ]; then
-        eval "$(ssh-agent -s)"
+# Faster completion system
+autoload -Uz compinit
+if [[ -n ${ZDOTDIR:-$HOME}/.zcompdump(#qN.mh+24) ]]; then
+  compinit
+else
+  compinit -C
 fi
 
-eval "$(starship init zsh)"
-eval "$(fnm env --use-on-cd --shell zsh)"
-export PATH="$HOME/.local/bin:$PATH"
+# Auto-start ssh-agent
+if [ -z "$SSH_AUTH_SOCK" ]; then
+  eval "$(ssh-agent -s)"
+fi
+
+# fnm
+if [ -d "/opt/homebrew/opt/fnm/bin" ]; then
+  export PATH="/opt/homebrew/opt/fnm/bin:$PATH"
+  eval "$(fnm env --use-on-cd --shell zsh)"
+fi
+
