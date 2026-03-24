@@ -15,7 +15,9 @@ safe_install() {
 }
 
 
+safe_install "ripgrep"
 safe_install "fnm"
 safe_install "fd"
 safe_install "tmux"
 safe_install "nvim"
+mkdir -p ~/.vim/undodir
