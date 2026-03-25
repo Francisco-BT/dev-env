@@ -1,10 +1,33 @@
-theme=light:DraculaBlade,dark:DraculaPro
-shell-integration-features=no-cursor
-cursor-color=cell-foreground
-cursor-text=cell-background
-cursor-style=block
-cursor-style-blink=true
-fullscreen=true
-font-family="Berkeley Mono"
-font-size=15
+# --- Appearance & Theme ---
+# Sets the theme for light and dark modes
+theme = light:DraculaBlade,dark:DraculaPro
+fullscreen = true
 
+# --- Cursor Settings ---
+# Disables terminal-specific cursor features to let Neovim control it
+shell-integration-features = no-cursor
+cursor-color = cell-foreground
+cursor-text = cell-background
+cursor-style = block
+cursor-style-blink = true
+
+# --- Primary Font: Berkeley Mono ---
+font-family = "Berkeley Mono"
+font-size = 15.5
+font-variation = "wght=400"
+
+# --- Italic Font: Dank Mono ---
+# This "jumps" to Dank Mono whenever the terminal requests Italics
+font-family-italic = "Dank Mono"
+font-family-bold-italic = "Dank Mono"
+
+# --- Berkeley Mono Features (The "Secret Sauce") ---
+# ss01: Slashed Zero | ss02: Script Ampersand | calt: Ligatures
+font-feature = "ss01"
+font-feature = "ss02"
+font-feature = "calt"
+
+# --- Rendering Tweaks ---
+# Prevents the terminal from blurring characters or applying "fake" bolds
+font-thicken = true
+font-synthetic-style = false
