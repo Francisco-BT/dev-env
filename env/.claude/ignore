@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build
+dist/
+build/
+*.min.js
+*.min.css
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env*
+*.pem
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Testing
+coverage/
+__pycache__/
+
+# Lock files
+*-lock.json
+*.lock

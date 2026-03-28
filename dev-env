@@ -75,6 +75,9 @@ copy() {
 
 update_files $script_dir/env/.config $XDG_CONFIG_HOME
 update_files $script_dir/env/.local $HOME/.local
+update_files $script_dir/env/.claude $HOME/.claude
 
 copy $script_dir/env/.zsh_profile $HOME/.zsh_profile
 copy $script_dir/env/.zshrc $HOME/.zshrc
+copy $script_dir/env/.claude/ignore $HOME/.claude/ignore
+copy $script_dir/env/.claude/statusline-command.sh $HOME/.claude/statusline-command.sh
