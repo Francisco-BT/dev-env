@@ -1,226 +1,192 @@
 # Context Optimization Rules
 
 ## Goal
+Minimize token usage, avoid unnecessary back-and-forth, and make smart assumptions to reduce costs and improve response times.
 
-Minimize token usage and avoid unnecessary context consumption to reduce costs and improve response times.
+---
 
-**Tool names vary by product** (e.g. file viewers, search, codebase search). Apply the same ideas: prefer **grep/search → small read ranges** over opening entire large files; **parallelize** independent reads; keep heavy paths out of index via `.claude/ignore` (or equivalent).
+## 1. Don't ask for clarification when the request is actionable
 
-## 1. Be selective with file reads
+If the request is explicit enough to act on, act on it. Reserve clarifying questions for genuine ambiguity that would cause wasted work if assumed wrong.
 
-### ❌ BAD - Reading entire large files
+### ❌ BAD - Asking unnecessary questions
 ```
-"Show me the view tool implementation"
-→ Reads entire 5000-line file when only 50 lines are relevant
-```
-
-### ✅ GOOD - Use targeted searches
-```
-"Show me the view tool implementation"
-→ Use view with search_query_regex to find specific function
-→ Or use view_range to read only relevant lines
+User: "write unit tests"
+→ "Which file? All of them? Only the critical ones? What framework?"
 ```
 
-## 2. Avoid redundant file reads
-
-### ❌ BAD - Re-reading files already in context
+### ✅ GOOD - Apply sensible defaults and state your assumption
 ```
-1. Read file.ts
-2. Make changes
-3. Read file.ts again (unnecessary - already in context)
-```
-
-### ✅ GOOD - Track what's in context
-```
-1. Read file.ts
-2. Make changes based on existing context
-3. Only re-read if file might have changed externally
+User: "write unit tests"
+→ Write tests for the file currently open or most recently discussed.
+   Cover happy path + main edge cases. Use the framework already in the project.
+   State assumption briefly if non-obvious: "Writing tests for UserService using Jest."
 ```
 
-## 3. Use codebase-retrieval efficiently
+### Default assumptions when scope is ambiguous:
+| Request | Default behavior |
+|---|---|
+| "write unit tests" | File in context, critical paths only (green path + main edge cases) |
+| "add error handling" | The function/block being discussed, not the entire codebase |
+| "fix this" | The selected code or most recently read file |
+| "refactor" | Scope limited to what was shown/discussed |
+| "add types" | Current file only |
+| "clean this up" | Current selection or file, no new features |
 
-### ❌ BAD - Vague or overly broad queries
-```
-"Show me all the code"
-"Find everything related to users"
-"Get all files in the project"
-```
+---
 
-### ✅ GOOD - Specific, targeted queries
-```
-"Find the UserService class implementation"
-"Show authentication middleware functions"
-"Locate the database connection configuration"
-```
+## 2. Make assumptions explicit, not interrogative
 
-## 4. Limit directory listings
-
-### ❌ BAD - Listing huge directories
-```
-Dependency trees (install dirs), generated output dirs, or entire monorepo roots without a path filter
-```
-
-### ✅ GOOD - Target specific paths
-```
-Open the smallest subtree that contains the feature (e.g. `src/services/`)
-Prefer single files when possible
-Use ignore rules (e.g. `.claude/ignore`) for artifacts your stack always regenerates
-```
-
-## 5. Exclude unnecessary files
-
-### Maintain an ignore file (e.g. `.claude/ignore`)
-
-Adapt names to your stack. Typical categories:
+When you must assume something, state it in one line and proceed. Don't ask and wait.
 
 ```
-# Build / compile output
+// ✅ GOOD
+"Assuming you want this for all environments — let me know if only production."
+[proceeds with the task]
+
+// ❌ BAD
+"Should I do this for all environments or just production?
+Also, should I update the tests? And do you want me to update the docs too?"
+[waits for answer before doing anything]
+```
+
+Only stop and ask when the wrong assumption would cause significant wasted work or irreversible changes.
+
+---
+
+## 3. Don't confirm before reversible actions
+
+Skip "Should I proceed?", "Is that OK?", "Want me to make this change?" for actions that are local and reversible (editing files, writing tests, etc.).
+
+Ask before: destructive operations, force pushes, dropping data, sending external messages.
+
+---
+
+## 4. Don't restate the problem or summarize what you just did
+
+Lead with the action or answer. Skip preamble and trailing summaries.
+
+```
+// ❌ BAD
+"You asked me to fix the authentication bug. I looked at the code and found
+the issue in the token validation. Here's what I changed: [diff]
+In summary, I updated the validateToken function to handle expired tokens correctly."
+
+// ✅ GOOD
+[makes the change]
+"Fixed — `validateToken` was not handling expired tokens, added the expiry check."
+```
+
+---
+
+## 5. Be selective with file reads
+
+Read the minimum needed to accomplish the task.
+
+### ❌ BAD
+```
+Reading entire 5000-line file to find one function
+Listing node_modules/ or dist/
+Re-reading a file already in context
+```
+
+### ✅ GOOD
+```
+Use Grep to locate the function, then Read only those lines
+Use Glob to find relevant files before reading any
+Skip re-reading files already in context unless they may have changed
+```
+
+---
+
+## 6. Parallel tool calls
+
+When multiple reads/searches are independent, run them in parallel — not sequentially.
+
+```
+// ❌ BAD - sequential
+Read file1.ts → Read file2.ts → Read file3.ts
+
+// ✅ GOOD - parallel
+Read file1.ts + file2.ts + file3.ts in a single message
+```
+
+---
+
+## 7. Scope inference for common tasks
+
+| Task | What to read | What to skip |
+|---|---|---|
+| Bug fix | The specific file/function + direct dependencies | Entire codebase, all tests |
+| New feature | 1-2 similar existing features as reference | Unrelated modules |
+| Write tests | The file under test | All other test files |
+| Refactor | Files with usages (via Grep) | Files without usages |
+| Add types | Current file + shared type files | Everything else |
+
+---
+
+## 8. Avoid reading generated/compiled files
+
+Never read unless explicitly asked:
+- `*.min.js`, `*.bundle.js`, `*.map`
+- `*.d.ts` — read source `.ts` instead
+- `dist/`, `build/`, `.next/`
+- `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`
+
+---
+
+## 9. Read tests only when relevant
+
+Read test files only when:
+- Explicitly asked to write or fix tests
+- Debugging a test failure
+- Need to understand expected behavior of an undocumented function
+
+Do not read test files to understand general codebase structure.
+
+---
+
+## 10. Maintain `.claude/ignore` per project
+
+Keep build artifacts, dependencies, and media out of context:
+
+```
 dist/
 build/
 out/
-target/
 .next/
-*.egg-info/
-
-# Installed dependencies
 node_modules/
-vendor/bundle/
-.venv/
-__pypackages__/
-
-# Logs, caches, OS noise
+vendor/
 *.log
 .DS_Store
 *.tmp
 .cache/
-
-# Coverage output
 coverage/
-
-# Secrets (security + less noise)
+.nyc_output/
 .env
 .env.*
-
-# Large binaries / media (unless the task needs them)
 *.mp4
+*.mov
 *.zip
 *.tar.gz
 *.pdf
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
 ```
 
-Add lockfiles or manifests here **only** if you rarely need them in context; many teams prefer to keep one lockfile readable for version bumps.
+---
 
-## 6. Use search instead of full reads
+## Summary
 
-### ❌ BAD - Reading to find something
-```
-Read entire 2000-line file to find one function
-```
-
-### ✅ GOOD - Search first, then read
-```
-Use view with search_query_regex="function myFunction"
-Then use view_range to read just that section
-```
-
-## 7. Batch related operations
-
-### ❌ BAD - Multiple separate tool calls
-```
-Read file A, then file B, then file C as three sequential steps when they are independent
-```
-
-### ✅ GOOD - Parallel tool calls when possible
-```
-Read independent files in one parallel batch
-```
-
-## 8. Avoid reading generated/compiled code
-
-### Files to avoid:
-- Minified or bundled artifacts (`*.min.js`, `*.bundle.js`, etc.)
-- Generated declaration or stub files (e.g. `*.d.ts`) unless the task is about types
-- Source maps
-- Compiled output trees (`dist/`, `build/`, …)
-- Lockfiles when the question is not about dependency versions
-
-### When you need type info:
-- Read **source** in the authoring language, not generated stubs
-- Use semantic search to find interfaces and definitions
-
-## 9. Smart test file handling
-
-### ❌ BAD - Reading all test files
-```
-Glob every `*test*` file to “learn the codebase”
-```
-
-### ✅ GOOD - Read tests only when needed
-```
-Open tests when:
-- Explicitly asked to write/fix tests
-- You need expected behavior for a specific module
-- Debugging a failing test run
-```
-
-## 10. Optimize for common tasks
-
-### For bug fixes:
-1. Use codebase-retrieval to find relevant code
-2. Read only the specific file/function
-3. Check related tests if needed
-4. Make targeted changes
-
-### For new features:
-1. Use codebase-retrieval to find similar patterns
-2. Read 2-3 example files max
-3. Create new code based on patterns
-4. Don't read entire codebase
-
-### For refactoring:
-1. Use codebase-retrieval to find all usages
-2. Read files with usages
-3. Make changes
-4. Don't re-read unless necessary
-
-## Context usage guidelines
-
-### Low usage (<30%): ✅ Optimal
-- Continue normal operations
-- Can afford to read additional context if needed
-
-### Medium usage (30-60%): ⚠️ Be mindful
-- Avoid reading large files
-- Use search and view_range
-- Clear unnecessary context if possible
-
-### High usage (60-80%): 🔶 Optimize
-- Only read essential files
-- Use very targeted searches
-- Avoid directory listings
-- Consider summarizing instead of full reads
-
-### Critical usage (>80%): 🔴 Minimize
-- Emergency mode: minimal reads only
-- Summarize instead of reading
-- Ask user for specific files if needed
-- Avoid any non-essential operations
-
-## Best practices summary
-
-✅ DO:
-- Use .claude/ignore extensively
-- Use search_query_regex for targeted reads
-- Use view_range for partial file reads
-- Batch parallel operations
-- Read source files, not generated ones
-- Use codebase-retrieval with specific queries
-
-❌ DON'T:
-- Read entire large files unnecessarily
-- List huge directories
-- Read generated/compiled code
-- Re-read files already in context
-- Use vague codebase-retrieval queries
-- Read all tests unless specifically needed
-
+| Principle | Rule |
+|---|---|
+| Ambiguous scope | Default to the file/selection in context |
+| Clarifying questions | Only when wrong assumption = wasted work |
+| Confirmations | Only before irreversible/destructive actions |
+| File reads | Minimum needed — grep first, read targeted lines |
+| Parallel ops | Always batch independent tool calls |
+| Summaries | Skip trailing "here's what I did" recaps |
+| Generated files | Never read unless explicitly asked |

@@ -1,53 +1,53 @@
-# Coding Style
+# Code Style
+
+## Language
+- All code, comments, variable names, function names, and documentation must be written in **English**
+- No exceptions: identifiers, string literals used as keys/enums, error messages, log messages — all in English
 
 ## Comments
+- **DO NOT add obvious or redundant comments**
+- **ONLY comment complex or non-intuitive code**
+- Prefer self-documenting code with good variable and function names
+- When commenting, explain the **why**, not the **what**
+- Avoid comments that simply repeat what the code does
 
-- **Do not add obvious or redundant comments**
-- **Only comment complex or non-obvious code**
-- Prefer self-explanatory code with clear names for variables and functions
-- When a comment is needed, write it in **English** (keeps tooling, reviews, and AI context consistent)
-- Avoid comments that merely restate what the code does
-
-### When comments are appropriate
-
+### When to comment:
 ```javascript
-// ✅ GOOD: Explains non-obvious logic
-// Bitwise check: true iff n is a power of two
+// ✅ GOOD: Explains complex or non-obvious logic
+// Bitwise check is faster than modulo for power-of-2 validation
 if ((n & (n - 1)) === 0) { ... }
 
-// ✅ GOOD: Explains a non-obvious decision
-// Clone to avoid mutating cached objects shared across requests
-const copy = JSON.parse(JSON.stringify(obj));
+// ✅ GOOD: Explains the "why" behind a non-obvious decision
+// Clone to prevent cache mutations from leaking into caller's reference
+const copy = JSON.parse(JSON.stringify(obj))
 
-// ❌ BAD: Obvious noise
-// Increment the counter
-counter++;
+// ❌ BAD: Obvious comment
+// Increment counter
+counter++
 ```
 
-## JavaScript / TypeScript
+## JavaScript/TypeScript
 
-### Modules and imports
-
-- Use ES modules (`import` / `export`)
+### Modules and Imports
+- Use ES6+ modules (import/export)
 - Group imports: built-in → external → internal
-- Blank line between groups
+- Blank line between import groups
 
 ```typescript
-// Standard library / runtime (language-specific)
-import { readFile } from "fs/promises";
-import path from "path";
+// Built-in
+import { readFile } from 'fs/promises';
+import path from 'path';
 
-// Third-party (registry, vendor, or internal package repo)
-import { createApp } from "application-framework";
-import { defineSchema } from "validation-library";
+// External
+import express from 'express';
+import { z } from 'zod';
 
-// This project
-import { UserService } from "./services/user";
-import { logger } from "./utils/logger";
+// Internal
+import { UserService } from './services/user';
+import { logger } from './utils/logger';
 ```
 
-### Naming
-
+### Naming conventions
 - **kebab-case** for file names (e.g. `user-service.ts`)
 - **PascalCase** for classes and components (e.g. `UserService`, `Button`)
 - **camelCase** for variables and functions (e.g. `getUserById`, `isValid`)
@@ -67,26 +67,27 @@ function GetUserById(id: string) {}
 ```
 
 ### Functions
-
-- Prefer arrow functions for short callbacks; use `function` for top-level exported APIs when hoisting or `this` binding matters
-- Keep functions small and single-purpose
+- Prefer arrow functions for callbacks
+- Use function declarations for top-level functions
+- Keep functions small with a single responsibility
+- Functions should do one thing and do it well
 
 ```typescript
 // ✅ GOOD
-function getActiveUserIds(users: User[]) {
-  return users.filter((user) => user.status === "active").map((user) => user.id);
+function processUser(user: User) {
+  return users.map(u => u.id);
 }
 
-// ❌ BAD: One huge function doing many unrelated things
+// ❌ BAD - Long function with multiple responsibilities
 function doEverything() {
-  // hundreds of lines...
+  // 100 lines of code...
 }
 ```
 
-### Async / await
-
-- Prefer `async`/`await` over long `.then()` chains
-- Handle errors explicitly (`try`/`catch` or `.catch()` at boundaries)
+### Async/Await
+- Prefer async/await over .then()
+- Always handle errors with try/catch
+- Never swallow errors silently
 
 ```typescript
 // ✅ GOOD
@@ -95,25 +96,24 @@ async function getUser(id: string) {
     const user = await db.users.findById(id);
     return user;
   } catch (error) {
-    logger.error("Error fetching user:", error);
+    logger.error('Error fetching user:', error);
     throw error;
   }
 }
 
 // ❌ BAD
 function getUser(id: string) {
-  return db.users
-    .findById(id)
-    .then((user) => user)
-    .catch((err) => console.log(err));
+  return db.users.findById(id)
+    .then(user => user)
+    .catch(err => console.log(err));
 }
 ```
 
-### TypeScript
-
-- Use explicit types on public function parameters and return types where they help inference
-- Avoid `any`; use `unknown` and narrow, or proper generics
-- Prefer `interface` for object shapes; `type` for unions, intersections, and aliases
+### TypeScript specifics
+- Use explicit types on function parameters and return values
+- Avoid `any` — use `unknown` if the type is truly unknown
+- Prefer `interface` for object shapes, `type` for unions and intersections
+- Use strict null checks — never assume a value is non-null without verification
 
 ```typescript
 // ✅ GOOD
@@ -122,7 +122,7 @@ interface User {
   email: string;
 }
 
-type Status = "active" | "inactive" | "pending";
+type Status = 'active' | 'inactive' | 'pending';
 
 function processUser(user: User): Status {
   // ...
@@ -137,65 +137,80 @@ function processUser(user: any): any {
 ## General principles
 
 ### DRY (Don't Repeat Yourself)
-
-- Do not copy-paste logic; extract shared helpers
-- Avoid premature abstraction—repeat until a pattern is clear
+- Do not duplicate code
+- Extract common logic into functions/utilities
+- But don't over-abstract — three similar lines is better than a premature abstraction
 
 ### Composition over inheritance
-
-- Prefer composing small functions or objects
-- Use inheritance only when it matches the domain model
+- Prefer function composition
+- Use inheritance only when it makes semantic sense
 
 ### Readability
-
-- Self-explanatory code beats comments
-- Descriptive names beat short cryptic names
-- Simplicity beats cleverness
-
-```typescript
-// ✅ GOOD
-const activeUsers = users.filter((user) => user.status === "active");
-
-// ❌ BAD
-const u = users.filter((x) => x.s === "a"); // needs a comment to be understood
-```
-
-## Testing
-
-- Test non-trivial logic and regressions
-- Use descriptions that document expected behavior
-- Prefer small, focused unit tests
+- Self-documenting code > comments
+- Descriptive names > short names
+- Simplicity > cleverness
 
 ```typescript
-// ✅ GOOD
-describe("UserService", () => {
-  it("returns user when a valid id is provided", async () => {
-    const user = await userService.getById("123");
-    expect(user).toBeDefined();
-    expect(user.id).toBe("123");
-  });
-});
+// ✅ GOOD - Self-documenting
+const activeUsers = users.filter(user => user.status === 'active');
+
+// ❌ BAD - Needs a comment to explain itself
+const u = users.filter(x => x.s === 'a'); // active users
 ```
+
+### Minimize complexity
+- Do not add features, refactors, or "improvements" beyond what was asked
+- Do not add error handling for scenarios that cannot happen
+- Do not create helpers or abstractions for one-time operations
+- Do not design for hypothetical future requirements
 
 ## Error handling
-
-- Handle errors at appropriate boundaries; do not swallow failures
-- Use custom error classes when they improve handling upstream
-- Never use empty `catch` blocks
+- Always handle errors explicitly
+- Use custom error classes when appropriate
+- Never silence errors with empty catch blocks
+- Log errors at the appropriate level (error vs warn vs info)
 
 ```typescript
 // ✅ GOOD
 class UserNotFoundError extends Error {
   constructor(userId: string) {
     super(`User not found: ${userId}`);
-    this.name = "UserNotFoundError";
+    this.name = 'UserNotFoundError';
   }
 }
 
 // ❌ BAD
 try {
   // ...
-} catch {
-  // silent failure
+} catch (e) {
+  // silently ignored
 }
+```
+
+## Security
+- Never introduce command injection, XSS, SQL injection, or other OWASP Top 10 vulnerabilities
+- Validate input only at system boundaries (user input, external APIs) — trust internal code
+- Never commit secrets, API keys, or credentials
+- Sanitize any user-provided data before using it in queries or templates
+
+## Testing
+- Write tests for complex logic
+- Tests should be descriptive and document expected behavior
+- Prefer small, focused unit tests
+- Follow the AAA pattern: Arrange → Act → Assert
+- Tests must be independent — no shared mutable state between tests
+
+```typescript
+// ✅ GOOD
+describe('UserService', () => {
+  it('should return user when valid id is provided', async () => {
+    const user = await userService.getById('123');
+    expect(user).toBeDefined();
+    expect(user.id).toBe('123');
+  });
+
+  it('should throw UserNotFoundError when id does not exist', async () => {
+    await expect(userService.getById('nonexistent')).rejects.toThrow(UserNotFoundError);
+  });
+});
 ```
