@@ -6,18 +6,24 @@ else
 fi
 
 safe_install() {
-    if brew list "$1" >/dev/null 2>&1;then
-        echo "✔ $1 already installed."
+    if brew list "$@" >/dev/null 2>&1; then
+        if [[ -n "$(brew outdated "$@" 2>/dev/null)" ]]; then
+            echo "⬆ Upgrading $*..."
+            brew upgrade "$@"
+        else
+            echo "✔ $* already installed (up to date)."
+        fi
     else
-        echo "📦 Installing $1..."
-        brew install "$1"
+        echo "📦 Installing $*..."
+        brew install "$@"
     fi
 }
 
 
-safe_install "ripgrep"
-safe_install "fnm"
-safe_install "fd"
-safe_install "tmux"
-safe_install "nvim"
+safe_install ripgrep
+safe_install fnm
+safe_install fd
+safe_install tmux
+safe_install nvim
+safe_install --cask ghostty
 mkdir -p ~/.vim/undodir
