@@ -5,7 +5,7 @@
 # --- Theme ---
 theme                       = light:DraculaAlucard,dark:DraculaPro
 # Fix: BrightBlack visible on light background (DraculaAlucard)
-palette                     = 8=#7B7D93
+palette                     = 8=#908CAA
 
 # --- Window ---
 fullscreen                  = true
