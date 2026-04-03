@@ -26,4 +26,5 @@ safe_install fd
 safe_install tmux
 safe_install nvim
 safe_install --cask ghostty
-mkdir -p ~/.vim/undodir
+# Matches vim.fn.stdpath("data") .. "/undodir" in options.lua
+mkdir -p "${XDG_DATA_HOME:-$HOME/.local/share}/nvim/undodir"
