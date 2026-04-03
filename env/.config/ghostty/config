@@ -1,44 +1,59 @@
-#=============================================================================
+# =============================================================================
 # GHOSTTY CONFIG — Optimized for tmux + Neovim
 # =============================================================================
 
-# --- Appearance & Theme ---
-theme = light:DraculaAlucard,dark:DraculaPro
-fullscreen = true
-background-opacity = 0.95
-background-blur-radius = 20
+# --- Theme ---
+theme                       = light:DraculaAlucard,dark:DraculaPro
+# Fix: BrightBlack visible on light background (DraculaAlucard)
+palette                     = 8=#7B7D93
 
 # --- Window ---
-# window-decoration = false
-window-padding-balance = true
-# Dracula alucard override for black bright
-palette = 8=#6272A4
+fullscreen                  = true
+confirm-close-surface       = false
+window-padding-balance      = true
+# Extends nearest cell color into padding area
+window-padding-color        = extend
 
-# --- Cursor ---
-# Let Neovim control the cursor shape via escape sequences
-shell-integration-features = no-cursor
-cursor-color = cell-foreground
-cursor-text = cell-background
-cursor-style = block
-cursor-style-blink =
-cursor-invert-fg-bg = true
+# --- Background ---
+background-opacity          = 0.90
+background-blur-radius      = 20
+# Cleaner text edges when opacity < 1
+alpha-blending              = linear-corrected
+
+# --- Scrollback ---
+scrollback-limit            = 10000000
 
 # --- Fonts ---
-font-family = "Berkeley Mono"
-font-size = 15
-font-family-bold-italic = "Dank Mono"
-font-family-italic = "Dank Mono"
+font-family                 = "Berkeley Mono"
+font-size                   = 15.2
+font-family-italic          = "Dank Mono"
+font-family-bold-italic     = "Dank Mono"
+# Berkeley Mono has its own bold/italic, no need to synthesize
+font-synthetic-style        = false
+font-thicken                = true
+font-thicken-strength       = 100
+# Breaks ligatures under cursor for easier character editing in Neovim
+font-shaping-break          = cursor
 
-# --- Berkeley Mono OpenType Features ---
-# ss01: Slashed Zero | ss02: Script Ampersand | calt: Ligatures
-font-feature = "ss03"
-font-feature = "ss06"
-font-feature = "calt"
+# --- OpenType Features (Berkeley Mono) ---
+# ss03: ? | ss06: ? | calt: Ligatures
+font-feature                = ss03
+font-feature                = ss06
+font-feature                = calt
+
+# --- Cursor ---
+# Neovim controls cursor shape via escape sequences
+shell-integration-features  = no-cursor,no-sudo,no-title
+cursor-color                = cell-foreground
+cursor-text                 = cell-background
+cursor-style                = block
+# Blank = null, respects DEC Mode 12 (blink controlled by running program)
+cursor-style-blink          =
+cursor-invert-fg-bg         = true
 
 # --- Rendering ---
-font-synthetic-style = false
-# No overlay when resizing (tmux handles it)
-resize-overlay = never
-focus-follows-mouse = false
-font-thicken = true
-font-thicken-strength = 100
+# tmux handles resize feedback
+resize-overlay              = never
+focus-follows-mouse         = false
+# Extra vertical breathing room between lines
+adjust-cell-height          = 5%
