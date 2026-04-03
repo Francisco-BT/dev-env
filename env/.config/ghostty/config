@@ -9,8 +9,10 @@ background-opacity = 0.95
 background-blur-radius = 20
 
 # --- Window ---
-window-decoration = false
+# window-decoration = false
 window-padding-balance = true
+# Dracula alucard override for black bright
+palette = 8=#6272A4
 
 # --- Cursor ---
 # Let Neovim control the cursor shape via escape sequences
@@ -18,7 +20,7 @@ shell-integration-features = no-cursor
 cursor-color = cell-foreground
 cursor-text = cell-background
 cursor-style = block
-cursor-style-blink = 
+cursor-style-blink =
 cursor-invert-fg-bg = true
 
 # --- Fonts ---
@@ -40,4 +42,3 @@ resize-overlay = never
 focus-follows-mouse = false
 font-thicken = true
 font-thicken-strength = 100
-
