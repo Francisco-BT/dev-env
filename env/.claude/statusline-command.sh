@@ -1,56 +1,79 @@
-nput=$(cat)
+input=$(cat)
 
 BOLD='\033[1m'
+DIM='\033[2m'
 BLUE='\033[34m'
 GREEN='\033[32m'
 CYAN='\033[36m'
 YELLOW='\033[33m'
 RED='\033[31m'
-DIM='\033[2m'
+MAGENTA='\033[35m'
 RESET='\033[0m'
 
+# ─── Model ───────────────────────────────────────────────────
+model_id=$(echo "$input" | jq -r '.model.id // ""')
+case "$model_id" in
+  *opus*)   model_label="opus"   ; model_color=$MAGENTA ;;
+  *sonnet*) model_label="sonnet" ; model_color=$CYAN    ;;
+  *haiku*)  model_label="haiku"  ; model_color=$GREEN   ;;
+  *)        model_label=""       ; model_color=$DIM     ;;
+esac
+
+# ─── Path ────────────────────────────────────────────────────
 cwd=$(echo "$input" | jq -r '.workspace.current_dir // .cwd // ""')
 root=$(git -C "$cwd" rev-parse --show-toplevel 2>/dev/null)
-rel_path=$(realpath --relative-to="$root" "$cwd" 2>/dev/null)
 
-branch=$(git -C "$cwd" rev-parse --abbrev-ref HEAD 2>/dev/null)
-
-# Git status: tipo de cambios, push/pull
-if [ -n "$branch" ]; then
-  git_status=$(git -C "$cwd" status --short 2>/dev/null)
-  
-  # Contar tipos de cambios
-  added=$(echo "$git_status" | grep -c "^A" 2>/dev/null || echo "0")
-  modified=$(echo "$git_status" | grep -c "^.M\|^M" 2>/dev/null || echo "0")
-  deleted=$(echo "$git_status" | grep -c "^.D\|^D" 2>/dev/null || echo "0")
-  untracked=$(echo "$git_status" | grep -c "^??" 2>/dev/null || echo "0")
-  
-  # Construir indicador de cambios
-  changes=""
-  [ "$added" -gt 0 ] && changes="${changes}+${added}"
-  [ "$modified" -gt 0 ] && changes="${changes}~${modified}"
-  [ "$deleted" -gt 0 ] && changes="${changes}-${deleted}"
-  [ "$untracked" -gt 0 ] && changes="${changes}?${untracked}"
-  
-  # Push/Pull indicators
-  upstream=$(git -C "$cwd" rev-parse --abbrev-ref @{upstream} 2>/dev/null)
-  if [ -n "$upstream" ]; then
-    ahead=$(git -C "$cwd" rev-list --count @{upstream}..HEAD 2>/dev/null || echo "0")
-    behind=$(git -C "$cwd" rev-list --count HEAD..@{upstream} 2>/dev/null || echo "0")
-    
-    sync=""
-    [ "$ahead" -gt 0 ] && sync="${sync}⬆${ahead}"
-    [ "$behind" -gt 0 ] && sync="${sync}⬇${behind}"
-    
-    [ -n "$sync" ] && changes="${changes} ${sync}"
+if [ -n "$root" ]; then
+  repo=$(basename "$root")
+  if [ "$cwd" = "$root" ]; then
+    display_path="$repo"
+  else
+    display_path="$repo/${cwd#$root/}"
   fi
-  
-  [ -n "$changes" ] && git_info=" ${changes}" || git_info=""
 else
-  git_info=""
+  display_path="${cwd/#$HOME/~}"
 fi
 
-# Exit code del último comando
+# ─── Git ─────────────────────────────────────────────────────
+branch=$(git -C "$cwd" rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+if [ -n "$branch" ]; then
+  case "$branch" in
+    main|master)             branch_color=$BLUE   ;;
+    develop|dev)             branch_color=$CYAN   ;;
+    feature/*|feat/*)        branch_color=$GREEN  ;;
+    hotfix/*|fix/*|bugfix/*) branch_color=$RED    ;;
+    release/*)               branch_color=$YELLOW ;;
+    *)                       branch_color=$RESET  ;;
+  esac
+
+  git_status=$(git -C "$cwd" status --short 2>/dev/null)
+  added=$(echo "$git_status"     | grep -c "^A"       2>/dev/null || echo 0)
+  modified=$(echo "$git_status"  | grep -c "^.M\|^M"  2>/dev/null || echo 0)
+  deleted=$(echo "$git_status"   | grep -c "^.D\|^D"  2>/dev/null || echo 0)
+  untracked=$(echo "$git_status" | grep -c "^??"       2>/dev/null || echo 0)
+
+  changes=""
+  [ "$added"     -gt 0 ] && changes="${changes}+${added}"
+  [ "$modified"  -gt 0 ] && changes="${changes}~${modified}"
+  [ "$deleted"   -gt 0 ] && changes="${changes}-${deleted}"
+  [ "$untracked" -gt 0 ] && changes="${changes}?${untracked}"
+
+  upstream=$(git -C "$cwd" rev-parse --abbrev-ref @{upstream} 2>/dev/null)
+  if [ -n "$upstream" ]; then
+    ahead=$(git  -C "$cwd" rev-list --count @{upstream}..HEAD 2>/dev/null || echo 0)
+    behind=$(git -C "$cwd" rev-list --count HEAD..@{upstream} 2>/dev/null || echo 0)
+    [ "$ahead"  -gt 0 ] && changes="${changes} ⬆${ahead}"
+    [ "$behind" -gt 0 ] && changes="${changes} ⬇${behind}"
+  fi
+
+  stash_count=$(git -C "$cwd" stash list 2>/dev/null | wc -l | tr -d ' ')
+  [ "$stash_count" -gt 0 ] && changes="${changes} ≡${stash_count}"
+
+  [ -n "$changes" ] && git_info=" $changes" || git_info=""
+fi
+
+# ─── Exit code ───────────────────────────────────────────────
 exit_code=$(echo "$input" | jq -r '.last_command_exit_code // empty')
 if [ -n "$exit_code" ] && [ "$exit_code" != "0" ]; then
   exit_indicator=" ${RED}✗${exit_code}${RESET}"
@@ -58,73 +81,60 @@ else
   exit_indicator=""
 fi
 
-# Context window usage
-used_percentage=$(echo "$input" | jq -r '.context_window.used_percentage // 0')
-used_int=$(printf "%.0f" "$used_percentage")
+# ─── Context animation ───────────────────────────────────────
+used_pct=$(echo "$input" | jq -r '.context_window.used_percentage // 0')
+tokens_used=$(echo "$input" | jq -r '.context_window.total_input_tokens // 0')
+used_int=$(printf "%.0f" "$used_pct")
 
-current_second=$(date +%s)
-anim_frame=$((current_second % 10))
+frame=$(( $(date +%s) % 8 ))
+SPIN=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧")
+PULSE=("·" "·" "◦" "○" "◉" "○" "◦" "·")
+spin="${SPIN[$frame]}"
+pulse="${PULSE[$frame]}"
 
-get_spinner() {
-  local frame=$1
-  local spinners=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
-  echo "${spinners[$frame]}"
-}
-
-create_mini_bar() {
-  local pct=$1
-  local frame=$2
-  local filled=$((pct / 10))
-  local empty=$((10 - filled))
+make_bar() {
+  local pct=$1 f=$2 width=8
+  local filled=$(( pct * width / 100 ))
+  local frontier=("░" "▒" "▓" "▒")
   local bar=""
-  
-  for ((i=0; i<filled; i++)); do
-    if [ $i -eq $((filled - 1)) ] && [ $filled -lt 10 ]; then
-      case $((frame % 3)) in
-        0) bar+="▓" ;;
-        1) bar+="▒" ;;
-        2) bar+="░" ;;
-      esac
-    else
+  for ((i=0; i<width; i++)); do
+    if   [ $i -lt $(( filled - 1 )) ]; then
       bar+="█"
+    elif [ $i -eq $(( filled - 1 )) ] && [ "$filled" -gt 0 ]; then
+      bar+="${frontier[$((f % 4))]}"
+    else
+      bar+="·"
     fi
   done
-  
-  for ((i=0; i<empty; i++)); do bar+="░"; done
   echo "$bar"
 }
 
-# Context indicator
-if [ "$used_int" -lt 50 ]; then
-  icon=$(get_spinner $anim_frame)
-  [ "$used_int" -lt 30 ] && ctx_color=$GREEN || ctx_color=$CYAN
-  printf "${ctx_color}${icon}${RESET} "
-  
+fmt_k() {
+  [ "$1" -ge 1000 ] && echo "$(( $1 / 1000 ))k" || echo "$1"
+}
+
+# Four states: pulse → spinner+% → bar+% → urgent bar+%+tokens
+if [ "$used_int" -lt 40 ]; then
+  printf "${GREEN}${pulse}${RESET} "
 elif [ "$used_int" -lt 70 ]; then
-  icon=$(get_spinner $anim_frame)
-  printf "${YELLOW}${icon} ${used_int}%%${RESET} "
-  
+  printf "${CYAN}${spin} ${used_int}%%${RESET} "
+elif [ "$used_int" -lt 85 ]; then
+  bar=$(make_bar "$used_int" "$frame")
+  printf "${YELLOW}${spin} ${DIM}${bar}${RESET}${YELLOW} ${used_int}%%${RESET} "
 else
-  icon=$(get_spinner $anim_frame)
-  mini_bar=$(create_mini_bar "$used_int" $anim_frame)
-  [ "$used_int" -lt 85 ] && ctx_color=$YELLOW || ctx_color=$RED
-  [ "$used_int" -lt 85 ] && weight="" || weight=$BOLD
-  printf "${weight}${ctx_color}${icon} ${used_int}%% ${DIM}${mini_bar}${RESET} "
+  bar=$(make_bar "$used_int" "$frame")
+  used_k=$(fmt_k "$tokens_used")
+  printf "${BOLD}${RED}${spin} ${bar} ${used_int}%% ${DIM}${used_k}${RESET} "
 fi
 
-# Path
-if [ -z "$rel_path" ] || [ "$rel_path" = "." ]; then
-  printf "${BOLD}${DIM}~${RESET}"
-else
-  printf "${BOLD}%s${RESET}" "$rel_path"
-fi
+# ─── Output ──────────────────────────────────────────────────
+printf "${BOLD}%s${RESET}" "$display_path"
 
-# Git branch + info
 if [ -n "$branch" ]; then
-  printf " ${BLUE}(%s%s)${RESET}" "$branch" "$git_info"
+  printf " ${branch_color}⎇ %s${RESET}" "$branch"
+  [ -n "$git_info" ] && printf "${DIM}%s${RESET}" "$git_info"
 fi
 
-# Exit code indicator
-printf "%s" "$exit_indicator"
+[ -n "$model_label" ] && printf " ${DIM}·${RESET} ${model_color}%s${RESET}" "$model_label"
 
-printf '\n'
+printf "%s\n" "$exit_indicator"
