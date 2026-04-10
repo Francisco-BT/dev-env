@@ -3,9 +3,9 @@
 # =============================================================================
 
 # --- Theme ---
-theme                       = light:DraculaAlucard,dark:DraculaPro
+theme                       = light:Rose Pine Moon,dark:DraculaPro
 # Fix: BrightBlack visible on light background (DraculaAlucard)
-palette                     = 8=#908CAA
+# palette                     = 8=#908CAA
 
 # --- Window ---
 fullscreen                  = true
@@ -55,5 +55,3 @@ cursor-invert-fg-bg         = true
 # tmux handles resize feedback
 resize-overlay              = never
 focus-follows-mouse         = false
-# Extra vertical breathing room between lines
-adjust-cell-height          = 5%
