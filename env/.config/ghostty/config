@@ -13,6 +13,8 @@ confirm-close-surface       = false
 window-padding-balance      = true
 # Extends nearest cell color into padding area
 window-padding-color        = extend
+# macOS: "transparent" blends titlebar with bg + blur (try if you use native bar)
+macos-titlebar-style        = transparent
 
 # --- Background ---
 background-opacity          = 0.90
@@ -26,8 +28,6 @@ scrollback-limit            = 10000000
 # --- Fonts ---
 font-family                 = "Berkeley Mono"
 font-size                   = 15.2
-font-family-italic          = "Dank Mono"
-font-family-bold-italic     = "Dank Mono"
 # Berkeley Mono has its own bold/italic, no need to synthesize
 font-synthetic-style        = false
 font-thicken                = true
