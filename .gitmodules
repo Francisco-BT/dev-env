@@ -1,3 +1,6 @@
 [submodule "env/.config/nvim"]
 	path = env/.config/nvim
 	url = https://github.com/Francisco-BT/vimconfig.git
+[submodule "themes/base16-dracula"]
+	path = themes/base16-dracula
+	url = git@github.com:Francisco-BT/base16-dracula.git
