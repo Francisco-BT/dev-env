@@ -22,6 +22,7 @@ alias yfix='yarn lint --fix'
 
 # Bindkeys
 bindkey -s ^f "tmux-sessionizer\n"
+bindkey -s ^g "tmux-windowizer\n"
 bindkey '^N' autosuggest-accept
 
 ## All that sweet sweet fzf

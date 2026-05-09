@@ -1,30 +1,162 @@
 #!/usr/bin/env bash
-search_paths=("$HOME/mine" "$HOME/work")
+# fzf: "[TMUX] name" (open sessions) + projects under ~/mine and/or ~/work (omitted if that dir is missing).
+# New session: short name; same folder name in both trees → mine-|work-; anything else → x-.
 
-if command -v fd >/dev/null 2>&1; then
-    selected=$(fd . "${search_paths[@]}" --min-depth 1 --max-depth 1 --type d --exclude node_modules --exclude .git | fzf)
-else
-    selected=$(find "${search_paths[@]}" -mindepth 1 -maxdepth 1 -type d \( -name node_modules -o -name .git \) -prune -o -type d -print | fzf)
-fi
-
-if [[ -z "$selected" ]]; then
-    exit 0
-fi
-selected_name=$(basename $selected | tr ".,: " "____")
-
-switch_to() {
-    if [[ -z "$TMUX" ]]; then
-        tmux attach-session -t $selected_name
+session_lines_for_fzf() {
+    if [[ -n "${TMUX:-}" ]]; then
+        local cur
+        cur=$(tmux display-message -p '#S' 2>/dev/null)
+        tmux list-sessions -F '[TMUX] #{session_name}' 2>/dev/null | grep -vFx "[TMUX] ${cur}" || true
     else
-        tmux switch-client -t $selected_name
+        tmux list-sessions -F '[TMUX] #{session_name}' 2>/dev/null || true
     fi
 }
 
-if tmux has-session -t="$selected_name" 2> /dev/null; then
+project_lines_for_fzf() {
+    local paths=()
+    [[ -d "${HOME}/mine" ]] && paths+=("${HOME}/mine")
+    [[ -d "${HOME}/work" ]] && paths+=("${HOME}/work")
+    if ((${#paths[@]} == 0)); then
+        return 0
+    fi
+    if command -v fd >/dev/null 2>&1; then
+        fd . "${paths[@]}" --min-depth 1 --max-depth 1 --type d --exclude node_modules --exclude .git
+    else
+        find "${paths[@]}" -mindepth 1 -maxdepth 1 -type d \( -name node_modules -o -name .git \) -prune -o -type d -print
+    fi
+}
+
+pick_with_fzf() {
+    {
+        session_lines_for_fzf
+        project_lines_for_fzf
+    } | fzf
+}
+
+derive_label() {
+    local path="$1"
+    local base
+    base=$(basename "$path" | tr '.,: ' '____')
+    [[ -z "${base}" ]] && return 1
+    if [[ "${base}" =~ ^[0-9]+$ ]]; then
+        base="sz-${base}"
+    fi
+    printf '%s' "${base}"
+}
+
+build_session_name() {
+    local path="$1"
+    local base raw mine_root work_root realm
+    raw=$(basename "$path")
+    base=$(derive_label "$path") || return 1
+
+    mine_root="${HOME}/mine"
+    work_root="${HOME}/work"
+
+    if [[ -d "${mine_root}" && "${path}" == "${mine_root}"/* ]]; then
+        realm=mine
+    elif [[ -d "${work_root}" && "${path}" == "${work_root}"/* ]]; then
+        realm=work
+    else
+        realm=x
+    fi
+
+    case "${realm}" in
+        mine)
+            if [[ -d "${work_root}/${raw}" ]]; then
+                printf '%s' "mine-${base}"
+            else
+                printf '%s' "${base}"
+            fi
+            ;;
+        work)
+            if [[ -d "${mine_root}/${raw}" ]]; then
+                printf '%s' "work-${base}"
+            else
+                printf '%s' "${base}"
+            fi
+            ;;
+        x)
+            printf '%s' "x-${base}"
+            ;;
+    esac
+}
+
+picked_session=false
+selected=$(pick_with_fzf)
+
+if [[ -z "${selected}" ]]; then
+    exit 0
+fi
+
+if [[ "${selected}" =~ ^\[TMUX\]\ (.+)$ ]]; then
+    picked_session=true
+    selected_name="${BASH_REMATCH[1]}"
+    selected=$(tmux display-message -p -t "${selected_name}:1" '#{pane_current_path}' 2>/dev/null)
+    if [[ -z "${selected}" ]]; then
+        selected=$(tmux display-message -p -t "${selected_name}" '#{pane_current_path}' 2>/dev/null)
+    fi
+    [[ -z "${selected}" ]] && selected="${HOME}"
+else
+    picked_session=false
+    selected_name=$(build_session_name "${selected}") || {
+        printf '%s\n' "tmux-sessionizer: could not derive session name for path: ${selected}" >&2
+        exit 1
+    }
+fi
+
+has_scratch_window() {
+    local name
+    while IFS= read -r name; do
+        [[ "${name}" == "scratch" ]] && return 0
+    done < <(tmux list-windows -t "${selected_name}" -F '#{window_name}' 2>/dev/null)
+    return 1
+}
+
+ensure_scratch_window() {
+    has_scratch_window && return 0
+    tmux new-window -d -t "${selected_name}" -n scratch -c "${selected}"
+}
+
+hydrate_session() {
+    local target="${selected_name}"
+    local proj hook
+    proj="${selected}/.tmux-sessionizer"
+    hook="${HOME}/.tmux-sessionizer"
+    if [[ -f "${proj}" ]]; then
+        tmux send-keys -t "${target}" "source $(printf '%q' "${proj}")" Enter
+    elif [[ -f "${hook}" ]]; then
+        tmux send-keys -t "${target}" "source $(printf '%q' "${hook}")" Enter
+    else
+        tmux send-keys -t "${target}" "ready-tmux" Enter
+    fi
+}
+
+boot_session() {
+    hydrate_session
+    ensure_scratch_window
+}
+
+switch_to() {
+    if [[ -z "${TMUX:-}" ]]; then
+        tmux attach-session -t "${selected_name}"
+    else
+        tmux switch-client -t "${selected_name}"
+    fi
+}
+
+if [[ "${picked_session}" == true ]]; then
+    ensure_scratch_window
     switch_to
     exit 0
 fi
 
-tmux new-session -ds $selected_name -c $selected
+if tmux has-session -t "${selected_name}" 2>/dev/null; then
+    ensure_scratch_window
+    switch_to
+    exit 0
+fi
+
+tmux new-session -d -s "${selected_name}" -c "${selected}"
+boot_session
 switch_to
-tmux send-keys -t $selected_name "ready-tmux" 

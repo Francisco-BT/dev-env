@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Extra named window in the current tmux session (Prime-style).
+# Usage:
+#   tmux-windowizer              → window named after current git branch (or cwd basename), cwd = pwd
+#   tmux-windowizer label        → same, explicit label (slashes ok: feature/foo → feature__foo)
+#   tmux-windowizer label cmd…   → create/focus window, then send keys (no implicit Enter)
+
+if [[ -z "${TMUX:-}" ]]; then
+    printf '%s\n' 'tmux-windowizer: run inside tmux' >&2
+    exit 1
+fi
+
+session_name=$(tmux display-message -p '#S')
+
+if (($# == 0)); then
+    label=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || basename "$(pwd)")
+else
+    label=$(basename "$1")
+    shift
+fi
+
+clean_name=$(printf '%s' "${label}" | tr './' '__')
+
+window_exists() {
+    local w
+    while IFS= read -r w; do
+        [[ "${w}" == "${clean_name}" ]] && return 0
+    done < <(tmux list-windows -t "${session_name}" -F '#{window_name}' 2>/dev/null)
+    return 1
+}
+
+if ! window_exists; then
+    tmux new-window -d -t "${session_name}" -n "${clean_name}" -c "$(pwd)"
+fi
+
+target="${session_name}:${clean_name}"
+
+if (($# > 0)); then
+    tmux send-keys -t "${target}" "$@"
+fi
