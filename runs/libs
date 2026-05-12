@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 if command -v fzf >/dev/null 2>&1;then
-    echo "✔ fzf is already istalled."
+    echo "✔ fzf is already installed."
 else
     echo "🚀 Installing fzf from Git..."
     mkdir -p "$HOME/personal"

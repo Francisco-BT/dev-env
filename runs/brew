@@ -20,7 +20,7 @@ safe_install() {
 }
 
 
-safe_install ripgrep # provides `rg` (Telescope live_grep, fzf, etc.)
+safe_install ripgrep
 safe_install fnm
 safe_install fd
 safe_install tmux
