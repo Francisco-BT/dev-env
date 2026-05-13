@@ -4,38 +4,34 @@
 
 # --- Theme ---
 theme                       = light:Rose Pine Moon,dark:DraculaPro
-# Fix: BrightBlack visible on light background (DraculaAlucard)
-# palette                     = 8=#908CAA
+
+# --- Fonts ---
+font-family                 = "Berkeley Mono"
+font-size                   = 15
+font-synthetic-style        = false
+font-thicken                = true
+font-thicken-strength       = 80
+# Breaks ligatures under cursor for easier character editing in Neovim
+font-shaping-break          = cursor
+
 
 # --- Window ---
 fullscreen                  = true
 confirm-close-surface       = false
-window-padding-balance      = true
-# Extends nearest cell color into padding area
-window-padding-color        = extend
-# macOS: "transparent" blends titlebar with bg + blur (try if you use native bar)
+window-padding-balance      = false
 macos-titlebar-style        = transparent
 
 # --- Background ---
-background-opacity          = 0.90
-background-blur-radius      = 20
+background-opacity          = 0.85
+background-blur             = false
+# background                  = 000000
 # Cleaner text edges when opacity < 1
 alpha-blending              = linear-corrected
 
 # --- Scrollback ---
 scrollback-limit            = 10000000
 
-# --- Fonts ---
-font-family                 = "Berkeley Mono"
-font-size                   = 15.2
-# Berkeley Mono has its own bold/italic, no need to synthesize
-font-synthetic-style        = false
-font-thicken                = true
-font-thicken-strength       = 100
-# Breaks ligatures under cursor for easier character editing in Neovim
-font-shaping-break          = cursor
-
-# --- OpenType Features (Berkeley Mono) ---
+# --- OpenType Features ---
 # ss03: ? | ss06: ? | calt: Ligatures
 font-feature                = ss03
 font-feature                = ss06
@@ -52,6 +48,10 @@ cursor-style-blink          =
 cursor-invert-fg-bg         = true
 
 # --- Rendering ---
-# tmux handles resize feedback
 resize-overlay              = never
 focus-follows-mouse         = false
+macos-non-native-fullscreen = true
+macos-option-as-alt         = left
+
+# --- Keybinds ---
+keybind = ctrl+enter=unbind
