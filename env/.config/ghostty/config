@@ -18,7 +18,7 @@ font-shaping-break          = cursor
 # --- Window ---
 fullscreen                  = true
 confirm-close-surface       = false
-window-padding-balance      = false
+window-padding-balance      = true
 macos-titlebar-style        = transparent
 
 # --- Background ---
