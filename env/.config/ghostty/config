@@ -4,9 +4,7 @@
 
 # --- Theme ---
 # Fallback until Neovim writes theme-current (macOS appearance).
-# Optional hand-made themes for ghostty-mirror (in ~/.config/ghostty/themes/):
-#   ln -sf DraculaPro themes/dracula_pro
-#   ln -sf DraculaAlucard themes/dracula_pro-light
+# Neovim only toggles light/dark here (DraculaAlucard / DraculaPro), not the editor palette.
 theme                       = light:DraculaAlucard,dark:DraculaPro
 
 # --- Fonts ---
@@ -63,5 +61,5 @@ macos-option-as-alt         = left
 # --- Keybinds ---
 keybind = ctrl+enter=unbind
 
-# Neovim ghostty-mirror override (must be last)
+# Neovim light/dark override (must be last)
 config-file                 = ?~/.config/ghostty/theme-current
