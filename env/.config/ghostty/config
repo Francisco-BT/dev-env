@@ -3,7 +3,11 @@
 # =============================================================================
 
 # --- Theme ---
-theme                       = light:Rose Pine Moon,dark:DraculaPro
+# Fallback until Neovim writes theme-current (macOS appearance).
+# Optional hand-made themes for ghostty-mirror (in ~/.config/ghostty/themes/):
+#   ln -sf DraculaPro themes/dracula_pro
+#   ln -sf DraculaAlucard themes/dracula_pro-light
+theme                       = light:DraculaAlucard,dark:DraculaPro
 
 # --- Fonts ---
 font-family                 = "Berkeley Mono"
@@ -58,3 +62,6 @@ macos-option-as-alt         = left
 
 # --- Keybinds ---
 keybind = ctrl+enter=unbind
+
+# Neovim ghostty-mirror override (must be last)
+config-file                 = ?~/.config/ghostty/theme-current
