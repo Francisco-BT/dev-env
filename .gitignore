@@ -1,5 +1,6 @@
 /env/.config/ghostty/themes
 /env/.config/ghostty/theme-current
+/env/.config/tmux/theme-current.conf
 
 .vscode/
 
