@@ -1,65 +1,76 @@
 # =============================================================================
-# GHOSTTY CONFIG — Optimized for tmux + Neovim
+# Ghostty — tmux + Neovim
 # =============================================================================
 
-# --- Theme ---
-# Fallback until Neovim writes theme-current (macOS appearance).
-# Neovim only toggles light/dark here (DraculaAlucard / DraculaPro), not the editor palette.
-theme                       = light:DraculaAlucard,dark:DraculaPro
+# -----------------------------------------------------------------------------
+# Theme
+# -----------------------------------------------------------------------------
+# macOS fallback until Neovim writes theme-current.
+# Neovim toggles light/dark only (DraculaAlucard / DraculaPro), not the editor palette.
+theme = light:DraculaAlucard,dark:DraculaPro
 
-# --- Fonts ---
-font-family                 = "Berkeley Mono"
-font-size                   = 15
-font-synthetic-style        = false
-font-thicken                = true
-font-thicken-strength       = 80
-# Breaks ligatures under cursor for easier character editing in Neovim
-font-shaping-break          = cursor
+# -----------------------------------------------------------------------------
+# Window
+# -----------------------------------------------------------------------------
+fullscreen                   = true
+confirm-close-surface        = false
+window-padding-balance       = true
+window-padding-color         = background
+window-padding-x             = 0
+window-padding-y             = 0
+macos-titlebar-style         = transparent
+macos-non-native-fullscreen  = true
 
+# -----------------------------------------------------------------------------
+# Background
+# -----------------------------------------------------------------------------
+background-opacity           = 0.85
+background-blur              = false
+alpha-blending               = linear-corrected
+# background                 = 000000
 
-# --- Window ---
-fullscreen                  = true
-confirm-close-surface       = false
-window-padding-balance      = true
-macos-titlebar-style        = transparent
-window-padding-color 	      = background
-window-padding-x 	          = 0
-window-padding-y 	          = 0
+# -----------------------------------------------------------------------------
+# Font
+# -----------------------------------------------------------------------------
+font-family                  = "Berkeley Mono"
+font-size                    = 15
+font-synthetic-style         = false
+font-thicken                 = true
+font-thicken-strength        = 80
+font-shaping-break           = cursor
+font-feature                 = ss03
+font-feature                 = ss06
+font-feature                 = calt
 
-# --- Background ---
-background-opacity          = 0.85
-background-blur             = false
-# background                  = 000000
-# Cleaner text edges when opacity < 1
-alpha-blending              = linear-corrected
+# -----------------------------------------------------------------------------
+# Cursor
+# -----------------------------------------------------------------------------
+# Neovim controls shape via escape sequences; blink via DEC mode 12.
+shell-integration-features   = no-cursor,no-sudo,no-title
+cursor-color                 = cell-foreground
+cursor-text                  = cell-background
+cursor-style                 = block
+cursor-style-blink           =
+cursor-invert-fg-bg          = true
 
-# --- Scrollback ---
-scrollback-limit            = 10000000
+# -----------------------------------------------------------------------------
+# Terminal
+# -----------------------------------------------------------------------------
+scrollback-limit             = 10000000
+resize-overlay               = never
+focus-follows-mouse          = false
 
-# --- OpenType Features ---
-# ss03: ? | ss06: ? | calt: Ligatures
-font-feature                = ss03
-font-feature                = ss06
-font-feature                = calt
+# -----------------------------------------------------------------------------
+# macOS
+# -----------------------------------------------------------------------------
+macos-option-as-alt          = left
 
-# --- Cursor ---
-# Neovim controls cursor shape via escape sequences
-shell-integration-features  = no-cursor,no-sudo,no-title
-cursor-color                = cell-foreground
-cursor-text                 = cell-background
-cursor-style                = block
-# Blank = null, respects DEC Mode 12 (blink controlled by running program)
-cursor-style-blink          =
-cursor-invert-fg-bg         = true
-
-# --- Rendering ---
-resize-overlay              = never
-focus-follows-mouse         = false
-macos-non-native-fullscreen = true
-macos-option-as-alt         = left
-
-# --- Keybinds ---
+# -----------------------------------------------------------------------------
+# Keybinds
+# -----------------------------------------------------------------------------
 keybind = ctrl+enter=unbind
 
-# Neovim light/dark override (must be last)
-config-file                 = ?~/.config/ghostty/theme-current
+# -----------------------------------------------------------------------------
+# Neovim override (must be last)
+# -----------------------------------------------------------------------------
+config-file = ?~/.config/ghostty/theme-current
