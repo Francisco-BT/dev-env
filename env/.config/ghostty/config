@@ -5,9 +5,10 @@
 # -----------------------------------------------------------------------------
 # Theme
 # -----------------------------------------------------------------------------
-# macOS fallback until Neovim writes theme-current.
-# Neovim toggles light/dark only (DraculaAlucard / DraculaPro), not the editor palette.
+# Ghostty + macOS appearance are the source of truth. Edit light:/dark: themes here.
+# Neovim does not override terminal colors.
 theme = light:DraculaAlucard,dark:DraculaPro
+window-theme                 = system
 
 # -----------------------------------------------------------------------------
 # Window
@@ -69,8 +70,3 @@ macos-option-as-alt          = left
 # Keybinds
 # -----------------------------------------------------------------------------
 keybind = ctrl+enter=unbind
-
-# -----------------------------------------------------------------------------
-# Neovim override (must be last)
-# -----------------------------------------------------------------------------
-config-file = ?~/.config/ghostty/theme-current
