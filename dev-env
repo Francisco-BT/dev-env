@@ -73,6 +73,18 @@ copy() {
     fi
 }
 
+init_submodules() {
+    if [[ ! -f "$script_dir/.gitmodules" ]]; then
+        return
+    fi
+    log "git submodule update --init --recursive"
+    if [[ $dry_run == "0" ]]; then
+        git -C "$script_dir" submodule update --init --recursive
+    fi
+}
+
+init_submodules
+
 update_files $script_dir/env/.config $XDG_CONFIG_HOME
 update_files $script_dir/env/.local $HOME/.local
 update_files $script_dir/env/.claude $HOME/.claude

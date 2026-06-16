@@ -20,6 +20,20 @@ alias yd='yarn dev'
 alias ylint='yarn lint'
 alias yfix='yarn lint --fix'
 
+alias p='pnpm'
+alias pi='pnpm install'
+alias ps='pnpm start'
+alias pt='pnpm test'
+alias pb='pnpm build'
+alias pd='pnpm dev'
+alias plint='pnpm lint'
+alias pfix='pnpm lint --fix'
+
+# direnv: loads .envrc per project when installed (brew install direnv)
+if command -v direnv &>/dev/null; then
+  eval "$(direnv hook zsh)"
+fi
+
 # Bindkeys
 bindkey -s ^f "tmux-sessionizer\n"
 bindkey -s ^g "tmux-windowizer\n"
@@ -37,7 +51,7 @@ addToPath() {
 }
 
 addToPathFront() {
-    if [[ ! -z "$2" ]] || [[ "$PATH" != *"$1"* ]]; then
+    if [[ "$PATH" != *"$1"* ]]; then
         export PATH=$1:$PATH
     fi
 }

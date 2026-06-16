@@ -69,10 +69,22 @@ else
   compinit -C
 fi
 
-# Auto-start ssh-agent
-if [ -z "$SSH_AUTH_SOCK" ]; then
-  eval "$(ssh-agent -s)"
+# Auto-start ssh-agent (reuse one agent across terminals)
+_ssh_agent_env="${HOME}/.ssh/agent.env"
+if [[ -z "${SSH_AUTH_SOCK}" ]]; then
+  if [[ -f "${_ssh_agent_env}" ]]; then
+    # shellcheck disable=SC1090
+    source "${_ssh_agent_env}"
+  fi
 fi
+if ! ssh-add -l &>/dev/null; then
+  eval "$(ssh-agent -s)" >/dev/null
+  {
+    echo "export SSH_AUTH_SOCK=${SSH_AUTH_SOCK}"
+    echo "export SSH_AGENT_PID=${SSH_AGENT_PID}"
+  } >|"${_ssh_agent_env}"
+fi
+unset _ssh_agent_env
 
 # fnm
 if [ -d "/opt/homebrew/opt/fnm/bin" ]; then

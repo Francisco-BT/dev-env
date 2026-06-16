@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-if command -v fzf >/dev/null 2>&1;then
+# Fallback fzf install when Homebrew was not used. Prefer: ./run brew
+if command -v fzf >/dev/null 2>&1; then
     echo "✔ fzf is already installed."
 else
     echo "🚀 Installing fzf from Git..."

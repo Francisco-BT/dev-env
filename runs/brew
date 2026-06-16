@@ -23,6 +23,11 @@ safe_install() {
 safe_install ripgrep
 safe_install fnm
 safe_install fd
+safe_install fzf
+safe_install jq
+safe_install prettierd
+safe_install stylua
+safe_install direnv
 safe_install tmux
 safe_install nvim
 safe_install --cask ghostty

@@ -1,5 +1,8 @@
 /env/.config/ghostty/themes
 
+.DS_Store
+**/.DS_Store
+
 .vscode/
 
 .tmp-nvim-state/
