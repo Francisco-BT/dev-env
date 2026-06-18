@@ -1,0 +1,2 @@
+# Global spell check (English). Per-repo: add codebook.toml with dictionaries = ["en_us", "es"].
+dictionaries = ["en_us"]
